@@ -1,5 +1,9 @@
 import abc
 import random
+import copy
+import numpy as np
+
+import matplotlib.pyplot as plt
 
 
 class Program(abc.ABC):
@@ -36,12 +40,27 @@ class MonitorProgram(Program):
     """
     def __init__(self, env, record_every=1):
         super(MonitorProgram, self).__init__(env)
-        self.record_every = 0.5
+        self.record_every = record_every
+        self.records = []
 
     def run(self):
         while True:
-            print([len(b) for b in self.env.allocator.free_areas])
-            yield self.env.timeout(1)
+            self.records.append(copy.deepcopy(self.env.allocator.free_areas))
+            yield self.env.timeout(self.record_every)
+
+    def visualize_memory(self): 
+        rows = len(self.records)
+        cols = self.env.allocator.pages
+
+        mem_image = np.zeros((rows, cols))
+
+        for row, free_areas in enumerate(self.records):
+            for order in range(self.env.allocator.MAX_ORDER + 1):
+                for block in free_areas[order]:
+                    mem_image[row][block.address:block.address + 2**block.order] = 1
+
+        plt.imshow(mem_image)
+        plt.show()
 
 
 class StackProgram(Program):
