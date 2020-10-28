@@ -56,6 +56,31 @@ class BuddyAllocator(object):
 
                 return
 
+    def _try_combine_block(self, block):
+        """
+        If a buddy block is free, combines the provided block with the buddy
+        """
+        buddy = next((b for b in self.free_areas[block.order] if b.address ^ 2**block.order == block.address), None) 
+
+        if buddy is not None:
+            self.free_areas[block.order].remove(block)
+            self.free_areas[block.order].remove(buddy)
+            combined_block = MemBlock(order=block.order + 1, address=min(block.address, buddy.address))
+            self.free_areas[block.order + 1].append(combined_block)
+
+            return combined_block
+        else:
+            return None
+
+    def _progressive_try_combine(self, block):
+        """
+        Progressively tries to combine a block, and if successful, tries to combine the result.
+        """
+        while True:
+            block = self._try_combine_block(block)
+            if block is None:
+                break
+
     def allocate(self, pages, program):
         """
         Returns a number of RAM page indexes, if enough pages are available.
@@ -86,16 +111,15 @@ class BuddyAllocator(object):
         return True, [block]
 
 
-    def free(pages, program):
+    def free(self, block, program):
         """
-        Frees all provided pages, and groups together contigous regions. 
+        Frees the provided page, and groups together contigous regions. 
 
         Args:
-            pages (list): list of used page indexes that should be freed
+            page (MemBlock): MemBlock that should be freed
             program (object): simpy agent that is trying to free pages
-
-        Returns:
-            bool: whether allocation is successful
-            list: a list of addresses of pages allocated, if successful
         """
-        pass
+        block.program = None
+
+        self.free_areas[block.order].append(block)
+        self._progressive_try_combine(block)
