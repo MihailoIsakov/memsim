@@ -28,6 +28,10 @@ class Program(abc.ABC):
         self.blocks.remove(block)
         self.env.allocator.free(block, program=self)
 
+    def suicide(self):
+        for block in self.blocks:
+            self.free(block)
+
     @abc.abstractmethod
     def run(self):
         pass
@@ -59,18 +63,19 @@ class MonitorProgram(Program):
                 for block in free_areas[order]:
                     mem_image[row][block.address:block.address + 2**block.order] = 1
 
-        plt.imshow(mem_image)
+        plt.imshow(mem_image, aspect='auto')
         plt.show()
 
 
 class StackProgram(Program):
-    def __init__(self, env, action_chance=0.5):
+    def __init__(self, env, action_chance=0.5, suicide_chance=0.001):
         super(StackProgram, self).__init__(env)
         self.action_chance = 0.5
+        self.suicide_chance = suicide_chance
 
     def run(self):
         while True:
-            if random.random() > self.action_chance: 
+            if random.random() > (1 - self.action_chance): 
                 if random.random() > 0.5: 
                     try: 
                         self.allocate(1)
@@ -80,7 +85,36 @@ class StackProgram(Program):
                     if len(self.blocks) > 0:
                         self.free(self.blocks[-1])
 
+            if random.random() < self.suicide_chance:
+                self.suicide()
+
             yield self.env.timeout(1)
 
 
+class LinkedListProgram(Program):
+    def __init__(self, env, action_chance=0.5, block_size=1, suicide_chance=0.001):
+        super(LinkedListProgram, self).__init__(env)
+        self.action_chance = 0.5
+        self.block_size = block_size
+        self.suicide_chance = suicide_chance
+
+    def run(self):
+        while True:
+            if random.random() > (1 - self.action_chance): 
+                if random.random() > 0.5: 
+                    try: 
+                        self.allocate(self.block_size)
+                    except:
+                        pass
+                else:
+                    if len(self.blocks) > 0:
+                        self.free(random.sample(self.blocks, k=1)[0])
+
+            if random.random() < self.suicide_chance:
+                self.suicide()
+
+            yield self.env.timeout(1)
+
+
+        
         
