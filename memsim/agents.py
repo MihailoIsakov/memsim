@@ -115,6 +115,33 @@ class LinkedListProgram(Program):
 
             yield self.env.timeout(1)
 
+        
+class StableLinkedListProgram(Program):
+    def __init__(self, env, action_chance=0.5, mean_blocks=100, var_blocks=10, block_size=1, suicide_chance=0.001):
+        super(StableLinkedListProgram, self).__init__(env)
+        self.action_chance = 0.5
+        self.block_size = block_size
+        self.suicide_chance = suicide_chance
+        self.mean_blocks = mean_blocks
+        self.var_blocks = var_blocks
+
+    def run(self):
+        while True:
+            if random.random() > (1 - self.action_chance): 
+                if (random.random() * 2 - 1) > (len(self.blocks) - self.mean_blocks) / self.var_blocks:
+                    try: 
+                        self.allocate(2**random.randint(0, 5))
+                    except:
+                        pass
+                else:
+                    if len(self.blocks) > 0:
+                        self.free(random.sample(self.blocks, k=1)[0])
+
+            if random.random() < self.suicide_chance:
+                self.suicide()
+
+            yield self.env.timeout(1)
+
 
         
         
