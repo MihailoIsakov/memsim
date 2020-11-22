@@ -100,9 +100,9 @@ class BuddyAllocator(object):
 
         if pages != 2**order:
             raise NotImplementedError("Allocating pages which are not powers of two is not supported yet")
-        current_utilization = int(self.num_alloc_pages / self.num_pages)
+        current_utilization = int((self.num_alloc_pages / self.num_pages) * 100)
         if 0 <= self.max_utilization <= current_utilization:
-            print('Memory utilization ({}%) >= max utilization ({}%)'.format(current_utilization, self.max_utilization))
+            # print('Memory utilization ({}%) >= max utilization ({}%)'.format(current_utilization, self.max_utilization))
             return False, [None]
         self.num_alloc_pages += pages
         if len(self.free_areas[order]) == 0:
