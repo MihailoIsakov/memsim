@@ -54,7 +54,7 @@ class MonitorProgram(Program):
 
     def visualize_memory(self): 
         rows = len(self.records)
-        cols = self.env.allocator.pages
+        cols = self.env.allocator.num_pages
 
         mem_image = np.zeros((rows, cols))
 

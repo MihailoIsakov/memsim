@@ -13,12 +13,14 @@ class MemBlock(object):
 
 
 class BuddyAllocator(object):
-    def __init__(self, pages):
+    def __init__(self, pages, max_utilization=-1):
         # Check if pages is a power of 2
         if math.log2(pages) % 1 != 0:
             raise NotImplementedError("Support for non-power-of-two zones is not implemented")
 
-        self.pages = pages
+        self.num_pages = pages
+        self.num_alloc_pages = 0
+        self.max_utilization = max_utilization
         self.MAX_ORDER = math.floor(math.log2(pages))
         # data structure that holds a list of block of every order 
         self.free_areas = [[] for i in range(self.MAX_ORDER + 1)]
@@ -98,7 +100,11 @@ class BuddyAllocator(object):
 
         if pages != 2**order:
             raise NotImplementedError("Allocating pages which are not powers of two is not supported yet")
-
+        current_utilization = int(self.num_alloc_pages / self.num_pages)
+        if 0 <= self.max_utilization <= current_utilization:
+            print('Memory utilization ({}%) >= max utilization ({}%)'.format(current_utilization, self.max_utilization))
+            return False, [None]
+        self.num_alloc_pages += pages
         if len(self.free_areas[order]) == 0:
             # if there aren't any blocks of the appropriate size, 
             try: 
@@ -120,6 +126,7 @@ class BuddyAllocator(object):
             program (object): simpy agent that is trying to free pages
         """
         block.program = None
-
+        num_pages_freed = 2**block.order
+        self.num_alloc_pages -= num_pages_freed
         self.free_areas[block.order].append(block)
         self._progressive_try_combine(block)
