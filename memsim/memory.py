@@ -1,5 +1,5 @@
 import math
-
+from collections import defaultdict
 
 class MemBlock(object):
     """
@@ -10,6 +10,13 @@ class MemBlock(object):
         self.address = address
         self.order   = order
         self.program = program
+
+
+class RawMemBlock(object):
+    def __init__(self, order, address, pid):
+        self.address = address
+        self.order = order
+        self.pid = pid
 
 
 class BuddyAllocator(object):
@@ -25,6 +32,7 @@ class BuddyAllocator(object):
         # data structure that holds a list of block of every order 
         self.free_areas = [[] for i in range(self.MAX_ORDER + 1)]
         self.free_areas[self.MAX_ORDER].append(MemBlock(order=self.MAX_ORDER, address=0))
+        self.alloc_map = {}
 
     def _split_block(self, order):
         """
@@ -114,6 +122,7 @@ class BuddyAllocator(object):
 
         block = self.free_areas[order].pop()
         block.program = program
+        self.alloc_map[block.address] = (RawMemBlock(block.order, block.address, program.pid()))
         return True, [block]
 
 
@@ -125,6 +134,7 @@ class BuddyAllocator(object):
             page (MemBlock): MemBlock that should be freed
             program (object): simpy agent that is trying to free pages
         """
+        del self.alloc_map[block.address]
         block.program = None
         num_pages_freed = 2**block.order
         self.num_alloc_pages -= num_pages_freed
