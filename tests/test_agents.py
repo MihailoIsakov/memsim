@@ -8,11 +8,11 @@ def test_stack_program():
     suicide_chance = 0
 
     sp1  = StackProgram     (env, action_chance=0.5                , suicide_chance=suicide_chance)
-    sp2  = StackProgram     (env, action_chance=0.1                , suicide_chance=suicide_chance)
+    # sp2  = StackProgram     (env, action_chance=0.1                , suicide_chance=suicide_chance)
     sp3  = StackProgram     (env, action_chance=0.9                , suicide_chance=suicide_chance)
     llp1 = LinkedListProgram(env, action_chance=0.1, block_size=1  , suicide_chance=suicide_chance)
     llp1 = LinkedListProgram(env, action_chance=0.06, block_size=4  , suicide_chance=suicide_chance)
-    llp1 = LinkedListProgram(env, action_chance=0.03, block_size=16  , suicide_chance=suicide_chance)
+    # llp1 = LinkedListProgram(env, action_chance=0.03, block_size=16  , suicide_chance=suicide_chance)
     # llp1 = LinkedListProgram(env, action_chance=0.1, block_size=1  , suicide_chance=suicide_chance)
     # llp1 = LinkedListProgram(env, action_chance=0.1, block_size=1  , suicide_chance=suicide_chance)
     # llp1 = LinkedListProgram(env, action_chance=0.1, block_size=1  , suicide_chance=suicide_chance)
@@ -28,5 +28,3 @@ def test_stack_program():
 
     env.run(until=200000)
     mp.visualize_memory()
-
-
